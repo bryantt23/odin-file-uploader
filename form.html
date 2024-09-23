@@ -4,10 +4,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const fileInput = document.querySelector('input[type="file"]');
+        const submitButton = document.querySelector('input[type="submit"]');
+
+        submitButton.disabled = true;
+
+        fileInput.addEventListener('change', function () {
+          submitButton.disabled = !fileInput.files.length;
+        });
+      });
+    </script>
   </head>
   <body>
     <h1>Upload file</h1>
-    <form action="/file" method="post" enctype="multipart/form-data">
+    <form
+      action="/file"
+      method="post"
+      enctype="multipart/form-data"
+      id="uploadForm"
+    >
       <input type="file" name="file" />
       <input type="submit" value="Upload" />
     </form>
