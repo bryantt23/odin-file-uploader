@@ -80,13 +80,11 @@ app.listen(PORT, function (err) {
     console.log("Server listening on PORT", PORT);
 })
 
-const printDirectories = async source => {
-    console.log("print folders")
+const getDirectories = async source => {
     const directories = (await fs.readdir(source, { withFileTypes: true }))
         .filter(dirent => dirent.isDirectory())
         .map(dirent => dirent.name)
-
-    console.log("directories: ", directories)
+    return directories
 }
 
 const makeDirectory = async (path) => {
@@ -97,27 +95,58 @@ const makeDirectory = async (path) => {
     }
 }
 
-const renameDirectory = (prev, updated) => {
-    fs.rename(prev, updated)
+const renameDirectory = async (prev, updated) => {
+    try {
+        await fs.rename(prev, updated)
+    } catch (error) {
+        console.error(error)
+    }
 }
 
-const deleteDirectory = (path) => {
-    fs.rmdir(path)
+const deleteDirectory = async (path) => {
+    try {
+        await fs.rmdir(path)
+    } catch (error) {
+        console.error(error)
+    }
+}
+
+const checkDirectory = async (path) => {
+    try {
+        const stats = await fs.stat(path)
+        console.log(`Directory ${path} exists`)
+    } catch (error) {
+        console.log(`Directory ${path} does not exist`)
+    }
 }
 
 const fsTest = async () => {
-    await printDirectories("./uploads")
+    console.log("print folders")
+    let directories = await getDirectories("./uploads")
+    console.log("directories: " + directories)
+
     console.log("create a folder")
     const path = './uploads/test_folder'
-    makeDirectory(path)
-    await printDirectories("./uploads")
+    await makeDirectory(path)
+    await checkDirectory(path)  // Check if the directory was created
+    console.log("print folders")
+    directories = await getDirectories("./uploads")
+    console.log("directories: " + directories)
+
     console.log('rename directory')
     const renamed = './uploads/test_folder_renamed'
-    renameDirectory(path, renamed)
-    await printDirectories("./uploads")
+    await renameDirectory(path, renamed)
+    await checkDirectory(renamed)  // Check if it was renamed
+    console.log("print folders")
+    directories = await getDirectories("./uploads")
+    console.log("directories: " + directories)
+
     console.log('delete directory')
-    deleteDirectory(renamed)
-    await printDirectories("./uploads")
+    await deleteDirectory(renamed)
+    await checkDirectory(renamed)  // Check if it was deleted
+    console.log("print folders")
+    directories = await getDirectories("./uploads")
+    console.log("directories: " + directories)
 }
 
 // fsTest()
