@@ -75,6 +75,60 @@ app.post('/logout', (req, res) => {
     })
 })
 
+
+app.get('/directory', async (req, res) => {
+    try {
+        const dirPath = req.query.path || './uploads'
+        const directories = await getDirectories(dirPath)
+        res.status(200).json({ directories })
+    } catch (error) {
+        console.error(error)
+        res.status(500).send('Error fetching directories')
+    }
+})
+
+app.post('/directory', async (req, res) => {
+    try {
+        const { path } = req.body
+        if (!path) {
+            return res.status(400).send('Path is required')
+        }
+        await makeDirectory(path)
+        res.status(201).send('Directory created successfully')
+    } catch (error) {
+        console.error(error)
+        res.status(500).send('Error creating directory')
+    }
+})
+
+app.put('/directory', async (req, res) => {
+    try {
+        const { prev, updated } = req.body
+        if (!prev || !updated) {
+            return res.status(400).send('Both previous and updated paths are required')
+        }
+        await renameDirectory(prev, updated)
+        res.status(200).send('Directory renamed successfully')
+    } catch (error) {
+        console.error(error)
+        res.status(500).send('Error renaming directory')
+    }
+})
+
+app.delete('/directory', async (req, res) => {
+    try {
+        const { path } = req.body
+        if (!path) {
+            return res.status(400).send('Path is required')
+        }
+        await deleteDirectory(path)
+        res.status(200).send('Directory deleted successfully')
+    } catch (error) {
+        console.error(error)
+        res.status(500).send('Error deleting directory')
+    }
+})
+
 app.listen(PORT, function (err) {
     if (err) console.log(err);
     console.log("Server listening on PORT", PORT);
