@@ -78,8 +78,6 @@ app.use(express.urlencoded({ extended: true }));
 
 // File upload endpoint
 app.post('/upload/:path', upload.single('file'), (req, res) => {
-    console.log('hiiii')
-    console.log(req.body); // Log to see what's available in req.body
     if (req.file) {
         res.status(200).send({ message: "File uploaded successfully", file: req.file });
     } else {
@@ -148,7 +146,7 @@ app.post('/directory', async (req, res) => {
         if (!path) {
             return res.status(400).send('Path is required')
         }
-        await makeDirectory(path)
+        await makeDirectory(`./uploads/${path}`)
         res.status(201).send('Directory created successfully')
     } catch (error) {
         console.error(error)

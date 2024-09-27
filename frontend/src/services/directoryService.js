@@ -34,11 +34,21 @@ export const uploadFile = async (formData, path, config) => {
 
     try {
         const response = await axios.post(`${baseUrl}/upload/${path}`, formData, config)
-        console.log("🚀 ~ uploadFile ~ response:", response)
         return response.data
     } catch (error) {
         console.error('Failed to fetch directories:', error);
         throw error
     }
-
 }
+
+export const createFolder = async (newFolderName) => {
+    try {
+        await axios.post(`${baseUrl}/directory`, {
+            path: newFolderName
+        })
+    } catch (error) {
+        console.error('Failed to create directory', error);
+        throw error
+    }
+}
+
