@@ -131,6 +131,21 @@ app.delete('/directory', async (req, res) => {
     }
 })
 
+app.get('/files', async (req, res) => {
+    const dirPath = req.query.path
+
+    // Normalize and restrict the path to the uploads directory
+    const normalizedPath = path.normalize(dirPath).replace(/^(\.\.[\/\\])+/, '');
+    const fullPath = path.join(__dirname, 'uploads', normalizedPath);
+    try {
+        const files = await getFiles(fullPath)
+        res.status(200).json({ files })
+    } catch (error) {
+        console.error('Failed to fetch files:', error);
+        res.status(500).send('Error fetching files');
+    }
+})
+
 app.listen(PORT, function (err) {
     if (err) console.log(err);
     console.log("Server listening on PORT", PORT);
@@ -141,6 +156,23 @@ const getDirectories = async source => {
         .filter(dirent => dirent.isDirectory())
         .map(dirent => dirent.name)
     return directories
+}
+
+const getFiles = async source => {
+    try {
+        const stats = await fs.stat(source)
+        if (!stats.isDirectory()) {
+            throw new Error('Not a directory');
+        }
+        const dirents = await fs.readdir(source, { withFileTypes: true })
+        const files = dirents
+            .filter(dirent => dirent.isFile())
+            .map(dirent => dirent.name)
+        return files
+    } catch (error) {
+        console.error('Error reading files:', error);
+        throw error;  // Propagate the error to be handled by the caller        
+    }
 }
 
 const makeDirectory = async (path) => {
