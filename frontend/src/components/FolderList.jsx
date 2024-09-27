@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { getDirectories } from '../services/directoryService'
+import { Link } from 'react-router-dom'
 
 function FolderList() {
     const [directories, setDirectories] = useState([])
@@ -15,7 +16,9 @@ function FolderList() {
     return (
         <div><h1>FolderList</h1>
             <ul>
-                {directories.map(directory => <li key={directory}>{directory}</li>)}
+                {directories.map(directory => <li key={directory}>
+                    <Link to={`/${directory}`}> {directory}</Link>
+                </li>)}
             </ul>
         </div>
     )
