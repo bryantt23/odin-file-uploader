@@ -14,7 +14,8 @@ function FolderList() {
     }, [])
 
     return (
-        <div><h1>FolderList</h1>
+        <div>
+            <h2>FolderList</h2>
             <ul>
                 {directories.map(directory => <li key={directory}>
                     <Link to={`/${directory}`}> {directory}</Link>

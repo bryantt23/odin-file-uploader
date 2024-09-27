@@ -3,13 +3,53 @@ const { PrismaSessionStore } = require('@quixo3/prisma-session-store')
 const { PrismaClient } = require('@prisma/client')
 const express = require('express')
 const multer = require('multer')
-const upload = multer({ dest: 'uploads/' })
 const path = require('path')
 const PORT = 3000
 const fs = require('fs').promises
 const prisma = new PrismaClient()
 const bodyParser = require('body-parser')
 const cors = require('cors')
+
+// Function to ensure the base upload directory exists
+async function ensureUploadsDirectory() {
+    const baseUploadsPath = path.join(__dirname, 'uploads');
+    try {
+        await fs.stat(baseUploadsPath);
+    } catch (error) {
+        if (error && error.code === 'ENOENT') {  // No such file or directory
+            await fs.mkdir(baseUploadsPath, { recursive: true });
+        } else {
+            throw error;
+        }
+    }
+}
+
+ensureUploadsDirectory().catch(console.error);
+
+// Configure multer with dynamic paths
+const storage = multer.diskStorage({
+    destination: async function (req, file, cb) {
+        const subPath = req.params.path;  // Assuming 'path' is provided through the URL
+        const fullPath = path.join(__dirname, 'uploads', subPath);
+
+        try {
+            await fs.stat(fullPath);
+        } catch (error) {
+            if (error && error.code === 'ENOENT') {
+                await fs.mkdir(fullPath, { recursive: true });
+            } else {
+                return cb(error);
+            }
+        }
+
+        cb(null, fullPath);
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.originalname); // Use the original file name
+    }
+});
+
+const upload = multer({ storage: storage });
 
 const app = express()
 app.use(cors())
@@ -32,6 +72,20 @@ app.use(
         )
     })
 )
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// File upload endpoint
+app.post('/upload/:path', upload.single('file'), (req, res) => {
+    console.log('hiiii')
+    console.log(req.body); // Log to see what's available in req.body
+    if (req.file) {
+        res.status(200).send({ message: "File uploaded successfully", file: req.file });
+    } else {
+        res.status(400).send({ message: "Failed to upload file" });
+    }
+});
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '', 'form.html'))
@@ -76,7 +130,6 @@ app.post('/logout', (req, res) => {
         res.send({ loggedIn: false })
     })
 })
-
 
 app.get('/directory', async (req, res) => {
     try {
@@ -145,6 +198,26 @@ app.get('/files', async (req, res) => {
         res.status(500).send('Error fetching files');
     }
 })
+
+app.post('/upload/:path', upload.single('file'), (req, res) => {
+    if (req.file) {
+        res.status(200).send({ message: 'File uploaded successfully', file: req.file })
+    }
+    else {
+        res.status(400).send({ message: "Failed to upload file" })
+    }
+})
+
+// Error handling middleware for Multer
+app.use((err, req, res, next) => {
+    if (err instanceof multer.MulterError) {
+        res.status(500).send({ message: err.message });
+    } else if (err) {
+        res.status(500).send({ message: err.message });
+    } else {
+        next();
+    }
+});
 
 app.listen(PORT, function (err) {
     if (err) console.log(err);
