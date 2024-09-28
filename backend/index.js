@@ -182,6 +182,36 @@ app.delete('/directory/:path', async (req, res) => {
     }
 })
 
+app.get('/files/details/:directory/:filename', async (req, res) => {
+    const { directory, filename } = req.params;
+
+    try {
+        const filePath = path.join(__dirname, 'uploads', directory, filename);
+
+        // Use asynchronous method to check if the file exists
+        try {
+            await fs.stat(filePath);
+        } catch (error) {
+            if (error.code === 'ENOENT') {  // No such file or directory
+                console.log("File does not exist:", filePath);
+                return res.status(404).send('File not found');
+            } else {
+                throw error;  // Other errors are thrown
+            }
+        }
+
+        const stats = await fs.stat(filePath);
+        res.json({
+            name: filename,
+            size: stats.size,
+            modified: stats.mtime.toISOString()  // Ensuring date is in a readable format
+        });
+    } catch (error) {
+        console.error("Error retrieving file details:", error);
+        res.status(500).send('Error getting file details');
+    }
+});
+
 app.get('/files', async (req, res) => {
     const dirPath = req.query.path
 

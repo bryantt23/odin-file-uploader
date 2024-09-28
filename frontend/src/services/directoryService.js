@@ -92,3 +92,12 @@ export const downloadFile = async (directory, filename) => {
         console.error('Download failed:', error);
     }
 }
+
+export const getFileDetails = async (directory, filename) => {
+    try {
+        const response = await axios.get(`${baseUrl}/files/details/${directory}/${filename}`)
+        return response.data
+    } catch (error) {
+        console.error('Failed to get file details:', error)
+    }
+}
