@@ -206,6 +206,26 @@ app.post('/upload/:path', upload.single('file'), (req, res) => {
     }
 })
 
+app.get(`/download/:directory/:filename`, async (req, res) => {
+    const { directory, filename } = req.params
+    const filePath = path.join(__dirname, 'uploads', directory, filename)
+
+    try {
+        await fs.stat(filePath)
+        res.download(filePath, filename, (err) => {
+            if (err) {
+                // Handle errors that occur during the download process
+                console.error("Download error:", err);
+                res.status(500).send("File could not be downloaded.");
+            }
+        })
+    } catch (error) {
+        // Handle errors such as file not existing
+        console.error("File does not exist:", error);
+        res.status(404).send("File not found.");
+    }
+})
+
 // Error handling middleware for Multer
 app.use((err, req, res, next) => {
     if (err instanceof multer.MulterError) {

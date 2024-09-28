@@ -73,4 +73,22 @@ export const renameDirectory = async (prev, updated) => {
     }
 }
 
-
+export const downloadFile = async (directory, filename) => {
+    try {
+        const response = await
+            axios({
+                url: `${baseUrl}/download/${directory}/${filename}`,
+                method: 'GET',
+                responseType: 'blob'
+            })
+        const fileURL = window.URL.createObjectURL(new Blob([response.data]))
+        const fileLink = document.createElement('a')
+        fileLink.href = fileURL
+        fileLink.setAttribute('download', filename)
+        document.body.appendChild(fileLink)
+        fileLink.click()
+        fileLink.parentNode.removeChild(fileLink)
+    } catch (error) {
+        console.error('Download failed:', error);
+    }
+}

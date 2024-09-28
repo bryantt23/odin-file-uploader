@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { uploadFile } from '../services/directoryService'
 
-function FileUpload({ directory }) {
+function FileUpload({ directory, fetchData }) {
     const [file, setFile] = useState()
 
     const handleChange = (e) => {
@@ -23,8 +23,8 @@ function FileUpload({ directory }) {
 
         const config = {}
         try {
-            const res = await uploadFile(formData, directory, config);
-            console.log("🚀 ~ handleSubmit ~ res:", res);
+            await uploadFile(formData, directory, config);
+            fetchData()
         } catch (error) {
             console.error("Error uploading file:", error);
         }
