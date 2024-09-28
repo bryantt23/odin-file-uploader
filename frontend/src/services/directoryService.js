@@ -52,3 +52,25 @@ export const createFolder = async (newFolderName) => {
     }
 }
 
+export const deleteDirectory = async (targetFolder) => {
+    try {
+        const response = await axios.delete(`${baseUrl}/directory/${targetFolder}`)
+        return response.data;
+    } catch (error) {
+        console.error('Failed to delete directory', error);
+        throw error
+    }
+}
+
+export const renameDirectory = async (prev, updated) => {
+    try {
+        await axios.put(`${baseUrl}/directory`, {
+            prev, updated
+        })
+    } catch (error) {
+        console.error('Failed to update directory', error);
+        throw error
+    }
+}
+
+

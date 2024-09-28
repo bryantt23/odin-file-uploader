@@ -168,9 +168,9 @@ app.put('/directory', async (req, res) => {
     }
 })
 
-app.delete('/directory', async (req, res) => {
+app.delete('/directory/:path', async (req, res) => {
     try {
-        const { path } = req.body
+        const { path } = req.params
         if (!path) {
             return res.status(400).send('Path is required')
         }
@@ -256,7 +256,7 @@ const makeDirectory = async (path) => {
 
 const renameDirectory = async (prev, updated) => {
     try {
-        await fs.rename(prev, updated)
+        await fs.rename(`./uploads/${prev}`, `./uploads/${updated}`)
     } catch (error) {
         console.error(error)
     }
@@ -264,7 +264,7 @@ const renameDirectory = async (prev, updated) => {
 
 const deleteDirectory = async (path) => {
     try {
-        await fs.rmdir(path)
+        await fs.rmdir(`./uploads/${path}`)
     } catch (error) {
         console.error(error)
     }
