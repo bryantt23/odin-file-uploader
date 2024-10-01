@@ -8,7 +8,7 @@ const PORT = 3000
 const fs = require('fs').promises
 const bodyParser = require('body-parser')
 const cors = require('cors')
-const { getFiles } = require('./fsFunctions')
+const { getFiles, getFileDetails, uploadFile, downloadFile } = require('./controllers/FileController')
 const { login, getStatus, logout } = require('./controllers/AuthenticationController')
 const { getDirectories, deleteDirectory, makeDirectory, renameDirectory } = require('./controllers/DirectoryController')
 
@@ -107,79 +107,12 @@ app.post('/directory', makeDirectory)
 app.put('/directory', renameDirectory)
 app.delete('/directory/:path', deleteDirectory)
 
-app.get('/files/details/:directory/:filename', async (req, res) => {
-    const { directory, filename } = req.params;
-
-    try {
-        const filePath = path.join(__dirname, 'uploads', directory, filename);
-
-        // Use asynchronous method to check if the file exists
-        try {
-            await fs.stat(filePath);
-        } catch (error) {
-            if (error.code === 'ENOENT') {  // No such file or directory
-                console.log("File does not exist:", filePath);
-                return res.status(404).send('File not found');
-            } else {
-                throw error;  // Other errors are thrown
-            }
-        }
-
-        const stats = await fs.stat(filePath);
-        res.json({
-            name: filename,
-            size: stats.size,
-            modified: stats.mtime.toISOString()  // Ensuring date is in a readable format
-        });
-    } catch (error) {
-        console.error("Error retrieving file details:", error);
-        res.status(500).send('Error getting file details');
-    }
-});
-
-app.get('/files', async (req, res) => {
-    const dirPath = req.query.path
-
-    // Normalize and restrict the path to the uploads directory
-    const normalizedPath = path.normalize(dirPath).replace(/^(\.\.[\/\\])+/, '');
-    const fullPath = path.join(__dirname, 'uploads', normalizedPath);
-    try {
-        const files = await getFiles(fullPath)
-        res.status(200).json({ files })
-    } catch (error) {
-        console.error('Failed to fetch files:', error);
-        res.status(500).send('Error fetching files');
-    }
-})
-
-app.post('/upload/:path', upload.single('file'), (req, res) => {
-    if (req.file) {
-        res.status(200).send({ message: 'File uploaded successfully', file: req.file })
-    }
-    else {
-        res.status(400).send({ message: "Failed to upload file" })
-    }
-})
-
-app.get(`/download/:directory/:filename`, async (req, res) => {
-    const { directory, filename } = req.params
-    const filePath = path.join(__dirname, 'uploads', directory, filename)
-
-    try {
-        await fs.stat(filePath)
-        res.download(filePath, filename, (err) => {
-            if (err) {
-                // Handle errors that occur during the download process
-                console.error("Download error:", err);
-                res.status(500).send("File could not be downloaded.");
-            }
-        })
-    } catch (error) {
-        // Handle errors such as file not existing
-        console.error("File does not exist:", error);
-        res.status(404).send("File not found.");
-    }
-})
+// file routes
+app.get('/files', getFiles)
+app.post('/upload/:path', upload.single('file'), uploadFile);
+app.get('/files/details/:directory/:filename', getFileDetails);
+app.post('/upload/:path', upload.single('file'), uploadFile)
+app.get(`/download/:directory/:filename`, downloadFile)
 
 // Error handling middleware for Multer
 app.use((err, req, res, next) => {
