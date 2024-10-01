@@ -8,9 +8,9 @@ const expressSession = require('express-session');
 const { PrismaSessionStore } = require('@quixo3/prisma-session-store');
 const { PrismaClient } = require('@prisma/client');
 
-const { getFiles, getFileDetails, uploadFile, downloadFile } = require('./controllers/FileController');
+const fsFileController = require('./controllers/FileController');
 const { login, getStatus, logout } = require('./controllers/AuthenticationController');
-const { getDirectories, deleteDirectory, makeDirectory, renameDirectory } = require('./controllers/DirectoryController');
+const multerDirectoryController = require('./controllers/DirectoryController');
 const upload = require('./config/multerConfig')
 
 const PORT = 3000;
@@ -60,16 +60,16 @@ app.post('/logout', logout);
 app.get('/status', getStatus);
 
 // Directory Management Routes
-app.get('/directory', getDirectories);
-app.post('/directory', makeDirectory);
-app.put('/directory', renameDirectory);
-app.delete('/directory/:path', deleteDirectory);
+app.get('/directory', multerDirectoryController.getDirectories);
+app.post('/directory', multerDirectoryController.makeDirectory);
+app.put('/directory', multerDirectoryController.renameDirectory);
+app.delete('/directory/:path', multerDirectoryController.deleteDirectory);
 
 // File Management Routes
-app.get('/files', getFiles);
-app.post('/upload/:path', upload.single('file'), uploadFile);
-app.get('/files/details/:directory/:filename', getFileDetails);
-app.get(`/download/:directory/:filename`, downloadFile);
+app.get('/files', fsFileController.getFiles);
+app.post('/upload/:path', upload.single('file'), fsFileController.uploadFile);
+app.get('/files/details/:directory/:filename', fsFileController.getFileDetails);
+app.get(`/download/:directory/:filename`, fsFileController.downloadFile);
 
 // ----- Error Handling Middleware -----
 app.use((err, req, res, next) => {
