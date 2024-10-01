@@ -26,16 +26,14 @@ const makeDirectory = async (req, res) => {
 
     const fullPath = `${directoryPath}/.placeholder`; // No prefix, direct under Home
 
-    console.log("🚀 ~ makeDirectory ~ directoryPath:", directoryPath)
     try {
-        const placeholderPath = path.join(__dirname, 'sierra.jpeg'); // Ensure this path is correct
+        const placeholderPath = path.join(__dirname, '../1x1.png'); // Ensure this path is correct
         await cloudinary.uploader.upload(placeholderPath, {
             public_id: fullPath,
             overwrite: true,
             resource_type: 'raw',
             folder: directoryPath
         });
-        console.log("Directory created at:", fullPath); // This will help confirm the path
         res.status(201).send('Directory created successfully');
     } catch (error) {
         console.error('Error creating directory:', error);
