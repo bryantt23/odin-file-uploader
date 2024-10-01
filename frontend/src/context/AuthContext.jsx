@@ -1,7 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import axios from 'axios'
-
-const baseUrl = 'http://localhost:3000'
+import { login as serviceLogin, logout as serviceLogout } from '../services/authenticationService';
 
 const AuthContext = createContext(null)
 
@@ -9,26 +7,15 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('user')))
 
     const login = async (username, password) => {
-        try {
-            const { data } = await axios.post(`${baseUrl}/login`, { username, password })
-            if (data.loggedIn) {
-                setUser({ username })
-                localStorage.setItem('user', JSON.stringify({ username }))
-            }
-        } catch (error) {
-            console.error('Login failed:', error);
-            throw error;
+        const result = await serviceLogin(username, password)
+        if (result) {
+            setUser({ username })
         }
     }
+
     const logout = async () => {
-        try {
-            await axios.post(`${baseUrl}/logout`)
-            setUser(null)
-            localStorage.removeItem('user')
-        } catch (error) {
-            console.error('Logout failed:', error);
-            throw error;
-        }
+        await serviceLogout()
+        setUser(null)
     }
 
     // Initialize user from local storage on first render
