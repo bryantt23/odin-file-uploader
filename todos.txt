@@ -1,0 +1,9 @@
+fix index.js to be clean with chatgpt help
+move react api calls into services
+
+
+https://chatgpt.com/c/66f315aa-9218-8000-99de-808934a98b5e
+
+move out fs functions
+then other functions
+separate cloudinary file & just get folders & go from there
