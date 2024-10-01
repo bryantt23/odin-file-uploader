@@ -12,6 +12,7 @@ const fsFileController = require('./controllers/FileController');
 const { login, getStatus, logout } = require('./controllers/AuthenticationController');
 const multerDirectoryController = require('./controllers/DirectoryController');
 const upload = require('./config/multerConfig')
+const cloudinaryDirectoryFileController = require('./controllers/CloudinaryController')
 
 const PORT = 3000;
 
@@ -60,8 +61,8 @@ app.post('/logout', logout);
 app.get('/status', getStatus);
 
 // Directory Management Routes
-app.get('/directory', multerDirectoryController.getDirectories);
-app.post('/directory', multerDirectoryController.makeDirectory);
+app.get('/directory', cloudinaryDirectoryFileController.getDirectories);
+app.post('/directory', cloudinaryDirectoryFileController.makeDirectory);
 app.put('/directory', multerDirectoryController.renameDirectory);
 app.delete('/directory/:path', multerDirectoryController.deleteDirectory);
 

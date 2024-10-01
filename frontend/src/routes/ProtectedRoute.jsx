@@ -3,7 +3,6 @@ import { useAuth } from '../context/AuthContext';
 
 export const ProtectedRoute = ({ children }) => {
     const { user } = useAuth()
-    console.log("🚀 ~ ProtectedRoute ~ user:", user)
 
     if (!user) {
         // Redirect them to the /login page, but save the current location they were
