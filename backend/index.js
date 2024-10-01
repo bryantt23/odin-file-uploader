@@ -8,8 +8,9 @@ const PORT = 3000
 const fs = require('fs').promises
 const bodyParser = require('body-parser')
 const cors = require('cors')
-const { deleteDirectory, getDirectories, getFiles, makeDirectory, renameDirectory } = require('./fsFunctions')
+const { getFiles } = require('./fsFunctions')
 const { login, getStatus, logout } = require('./controllers/AuthenticationController')
+const { getDirectories, deleteDirectory, makeDirectory, renameDirectory } = require('./controllers/DirectoryController')
 
 // Function to ensure the base upload directory exists
 async function ensureUploadsDirectory() {
@@ -95,63 +96,16 @@ app.post("/file", upload.single('file'), function (req, res, next) {
     res.redirect("/")
 })
 
+// authentication routes
 app.post('/login', login)
 app.post('/logout', logout)
 app.get('/status', getStatus)
 
-
-app.get('/directory', async (req, res) => {
-    try {
-        const dirPath = req.query.path || './uploads'
-        const directories = await getDirectories(dirPath)
-        res.status(200).json({ directories })
-    } catch (error) {
-        console.error(error)
-        res.status(500).send('Error fetching directories')
-    }
-})
-
-app.post('/directory', async (req, res) => {
-    try {
-        const { path } = req.body
-        if (!path) {
-            return res.status(400).send('Path is required')
-        }
-        await makeDirectory(`./uploads/${path}`)
-        res.status(201).send('Directory created successfully')
-    } catch (error) {
-        console.error(error)
-        res.status(500).send('Error creating directory')
-    }
-})
-
-app.put('/directory', async (req, res) => {
-    try {
-        const { prev, updated } = req.body
-        if (!prev || !updated) {
-            return res.status(400).send('Both previous and updated paths are required')
-        }
-        await renameDirectory(prev, updated)
-        res.status(200).send('Directory renamed successfully')
-    } catch (error) {
-        console.error(error)
-        res.status(500).send('Error renaming directory')
-    }
-})
-
-app.delete('/directory/:path', async (req, res) => {
-    try {
-        const { path } = req.params
-        if (!path) {
-            return res.status(400).send('Path is required')
-        }
-        await deleteDirectory(path)
-        res.status(200).send('Directory deleted successfully')
-    } catch (error) {
-        console.error(error)
-        res.status(500).send('Error deleting directory')
-    }
-})
+// directory routes
+app.get('/directory', getDirectories)
+app.post('/directory', makeDirectory)
+app.put('/directory', renameDirectory)
+app.delete('/directory/:path', deleteDirectory)
 
 app.get('/files/details/:directory/:filename', async (req, res) => {
     const { directory, filename } = req.params;
