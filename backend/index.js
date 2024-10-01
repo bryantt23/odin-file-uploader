@@ -11,6 +11,7 @@ const { PrismaClient } = require('@prisma/client');
 const { getFiles, getFileDetails, uploadFile, downloadFile } = require('./controllers/FileController');
 const { login, getStatus, logout } = require('./controllers/AuthenticationController');
 const { getDirectories, deleteDirectory, makeDirectory, renameDirectory } = require('./controllers/DirectoryController');
+const upload = require('./config/multerConfig')
 
 const PORT = 3000;
 
@@ -51,31 +52,6 @@ async function ensureUploadsDirectory() {
 }
 
 ensureUploadsDirectory().catch(console.error);
-
-// ----- Multer Configuration for File Uploads -----
-const storage = multer.diskStorage({
-    destination: async function (req, file, cb) {
-        const subPath = req.params.path;
-        const fullPath = path.join(__dirname, 'uploads', subPath);
-
-        try {
-            await fs.stat(fullPath);
-        } catch (error) {
-            if (error && error.code === 'ENOENT') {
-                await fs.mkdir(fullPath, { recursive: true });
-            } else {
-                return cb(error);
-            }
-        }
-
-        cb(null, fullPath);
-    },
-    filename: function (req, file, cb) {
-        cb(null, file.originalname);
-    }
-});
-
-const upload = multer({ storage: storage });
 
 // ----- API Routes -----
 // Authentication Routes
