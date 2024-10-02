@@ -64,7 +64,7 @@ app.get('/status', getStatus);
 app.get('/directory', cloudinaryDirectoryFileController.getDirectories);
 app.post('/directory', cloudinaryDirectoryFileController.makeDirectory);
 app.put('/directory', multerDirectoryController.renameDirectory);
-app.delete('/directory/:path', multerDirectoryController.deleteDirectory);
+app.delete('/directory/:path', cloudinaryDirectoryFileController.deleteDirectory);
 
 // File Management Routes
 app.get('/files', fsFileController.getFiles);

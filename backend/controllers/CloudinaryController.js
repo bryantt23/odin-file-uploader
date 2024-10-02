@@ -41,8 +41,50 @@ const makeDirectory = async (req, res) => {
     }
 }
 
+const deleteDirectory = async (req, res) => {
+    const { path: directoryPath } = req.params;
+    console.log("🚀 ~ deleteDirectory ~ directoryPath:", directoryPath);
 
+    if (!directoryPath) {
+        return res.status(400).send('Path is required');
+    }
 
+    try {
+        // Step 1: Try to delete resources of all types: images, videos, raw files
+        const resourceTypes = ['image', 'video', 'raw'];
+
+        for (const resourceType of resourceTypes) {
+            const resources = await cloudinary.api.resources({
+                type: 'upload',         // Fetch uploaded resources
+                prefix: directoryPath,   // Folder prefix
+                resource_type: resourceType
+            });
+
+            const publicIds = resources.resources.map(resource => resource.public_id);
+
+            if (publicIds.length > 0) {
+                // Delete all resources found in the folder
+                const resourcesDeleted = await cloudinary.api.delete_resources(publicIds, { resource_type: resourceType });
+                console.log(`🚀 ~ deleteDirectory ~ ${resourceType} resourcesDeleted:`, resourcesDeleted);
+            } else {
+                console.log(`🚀 ~ deleteDirectory ~ No ${resourceType} resources to delete`);
+            }
+        }
+
+        // Step 2: Now delete the folder itself
+        const folderDeleted = await cloudinary.api.delete_folder(directoryPath);
+        console.log("🚀 ~ deleteDirectory ~ folderDeleted:", folderDeleted);
+
+        res.status(200).send('Directory and its contents deleted successfully');
+    } catch (error) {
+        if (error.http_code === 404) {
+            console.log("🚀 ~ Folder not found:", directoryPath);
+            return res.status(404).send('Folder not found');
+        }
+        console.error("🚀 ~ deleteDirectory ~ error:", error);
+        res.status(500).send('Error deleting directory and its contents');
+    }
+};
 
 const renameDirectory = async (req, res) => {
     try {
@@ -55,20 +97,6 @@ const renameDirectory = async (req, res) => {
     } catch (error) {
         console.error(error)
         res.status(500).send('Error renaming directory')
-    }
-}
-
-const deleteDirectory = async (req, res) => {
-    try {
-        const { path } = req.params
-        if (!path) {
-            return res.status(400).send('Path is required')
-        }
-        await deleteDirectoryFs(path)
-        res.status(200).send('Directory deleted successfully')
-    } catch (error) {
-        console.error(error)
-        res.status(500).send('Error deleting directory')
     }
 }
 
