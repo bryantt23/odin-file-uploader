@@ -10,7 +10,8 @@ cloudinary.config({
 
 const getDirectories = async (req, res) => {
     try {
-        const result = await cloudinary.api.sub_folders(''); const directories = result.folders.map(folder => folder.name);
+        const result = await cloudinary.api.sub_folders('');
+        const directories = result.folders.map(folder => folder.name);
         res.json({ directories });
     } catch (error) {
         console.error('Failed to fetch Cloudinary folders:', error);
@@ -113,9 +114,99 @@ const renameDirectory = async (req, res) => {
     }
 }
 
+// In cloudinaryDirectoryFileController.js
+
+/**
+ * Fetch and return all files from a specified Cloudinary folder.
+ */
+const getFiles = async (req, res) => {
+    const folderPath = req.query.path;  // or adjust based on how you want to receive the folder path (e.g., req.params.path)
+    console.log("🚀 ~ getFiles ~ folderPath:", folderPath)
+
+    try {
+        const resources = await cloudinary.api.resources({
+            type: 'upload',
+            prefix: folderPath, // Ensure this matches the path structure in Cloudinary
+            max_results: 100,
+            resource_type: 'all'
+        });
+        console.log("🚀 ~ getFiles ~ resources:", resources)
+
+        // Filtering and sending file details as needed
+        const files = resources.resources.map(resource => ({
+            public_id: resource.public_id,
+            url: resource.secure_url,
+            resource_type: resource.resource_type,
+            format: resource.format,
+            created_at: resource.created_at
+        }));
+
+        res.json(files);
+    } catch (error) {
+        console.error('Failed to fetch files from Cloudinary:', error);
+        res.status(500).send({ message: "Error fetching files from Cloudinary", error });
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * Fetches resources from a specified folder in Cloudinary using async/await.
+ * @param {string} folderPath - The folder from which to fetch resources.
+ */
+async function fetchResources(folderPath) {
+    try {
+        let allResources = [];
+
+        // Fetch image resources
+        const imageResources = await cloudinary.api.resources({
+            type: 'upload',
+            prefix: '',
+            resource_type: 'image',
+            max_results: 100
+        });
+        console.log('Image resources fetched:', imageResources.resources.length);
+        allResources = allResources.concat(imageResources.resources);
+
+        // Fetch raw resources
+        const rawResources = await cloudinary.api.resources({
+            type: 'upload',
+            prefix: '',
+            resource_type: 'raw',
+            max_results: 100
+        });
+        console.log('Raw resources fetched:', rawResources.resources.length);
+        allResources = allResources.concat(rawResources.resources);
+
+        console.log("Total resources fetched:", allResources.length);
+
+        const filtered = allResources.filter(resource => resource.asset_folder === folderPath)
+        console.log("🚀 ~ fetchResources ~ filtered:", filtered, filtered.length)
+        return filtered
+    } catch (error) {
+        console.error('Error fetching resources:', error);
+    }
+}
+
+fetchResources('nested1')
+
+
+
+
+
 module.exports = {
     getDirectories,
     makeDirectory,
     renameDirectory,
-    deleteDirectory
+    deleteDirectory,
+    getFiles
 };
