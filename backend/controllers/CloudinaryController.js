@@ -114,31 +114,34 @@ const renameDirectory = async (req, res) => {
     }
 }
 
-// In cloudinaryDirectoryFileController.js
-
 /**
  * Fetch and return all files from a specified Cloudinary folder.
  */
 const getFiles = async (req, res) => {
-    const folderPath = req.query.path;  // or adjust based on how you want to receive the folder path (e.g., req.params.path)
-    const allResources = await getAllResources()
-    const filtered = allResources.filter(resource => resource.asset_folder === folderPath)
-    console.log("🚀 ~ getFiles ~ filtered:", filtered)
-    const mapped = filtered.map(resource => resource.display_name)
-    console.log("🚀 ~ getFiles ~ mapped:", mapped)
-    res.json({ files: mapped })
+    const folderPath = req.query.path;
+
+    if (!folderPath) {
+        return res.status(400).send({ message: 'Folder path is required' });
+    }
+
+    try {
+        const allResources = await getAllResources();
+        const filtered = allResources.filter(resource => resource.asset_folder === folderPath);
+
+        if (!filtered.length) {
+            return res.status(404).send({ message: `No resources found in folder: ${folderPath}` });
+        }
+
+        const files = filtered.map(resource => ({
+            display_name: resource.display_name
+        }));
+
+        res.json({ files });
+    } catch (error) {
+        console.error('Error fetching files:', error);
+        res.status(500).send({ message: "Error fetching files from Cloudinary", error });
+    }
 };
-
-
-
-
-
-
-
-
-
-
-
 
 async function getAllResources() {
     try {
