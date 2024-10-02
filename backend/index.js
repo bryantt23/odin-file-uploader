@@ -63,11 +63,11 @@ app.get('/status', getStatus);
 // Directory Management Routes
 app.get('/directory', cloudinaryDirectoryFileController.getDirectories);
 app.post('/directory', cloudinaryDirectoryFileController.makeDirectory);
-app.put('/directory', multerDirectoryController.renameDirectory);
+app.put('/directory', cloudinaryDirectoryFileController.renameDirectory);
 app.delete('/directory/:path', cloudinaryDirectoryFileController.deleteDirectory);
 
 // File Management Routes
-app.get('/files', fsFileController.getFiles);
+app.get('/files', cloudinaryDirectoryFileController.getFiles);
 app.post('/upload/:path', upload.single('file'), fsFileController.uploadFile);
 app.get('/files/details/:directory/:filename', fsFileController.getFileDetails);
 app.get(`/download/:directory/:filename`, fsFileController.downloadFile);
