@@ -41,6 +41,34 @@ const makeDirectory = async (req, res) => {
     }
 }
 
+// Helper function to delete a folder and its contents
+const deleteFolderHelper = async (directoryPath) => {
+    const resourceTypes = ['image', 'video', 'raw'];
+
+    try {
+        for (const resourceType of resourceTypes) {
+            const resources = await cloudinary.api.resources({
+                type: 'upload',
+                prefix: directoryPath,
+                resource_type: resourceType
+            });
+
+            const publicIds = resources.resources.map(resource => resource.public_id);
+
+            if (publicIds.length > 0) {
+                await cloudinary.api.delete_resources(publicIds, { resource_type: resourceType });
+            }
+        }
+
+        // Delete the folder itself
+        await cloudinary.api.delete_folder(directoryPath);
+        return { success: true };
+    } catch (error) {
+        return { success: false, error }; // Return the error for handling outside
+    }
+};
+
+
 const deleteDirectory = async (req, res) => {
     const { path: directoryPath } = req.params;
     console.log("🚀 ~ deleteDirectory ~ directoryPath:", directoryPath);
@@ -50,32 +78,17 @@ const deleteDirectory = async (req, res) => {
     }
 
     try {
-        // Step 1: Try to delete resources of all types: images, videos, raw files
-        const resourceTypes = ['image', 'video', 'raw'];
+        const result = await deleteFolderHelper(directoryPath)
 
-        for (const resourceType of resourceTypes) {
-            const resources = await cloudinary.api.resources({
-                type: 'upload',         // Fetch uploaded resources
-                prefix: directoryPath,   // Folder prefix
-                resource_type: resourceType
-            });
-
-            const publicIds = resources.resources.map(resource => resource.public_id);
-
-            if (publicIds.length > 0) {
-                // Delete all resources found in the folder
-                const resourcesDeleted = await cloudinary.api.delete_resources(publicIds, { resource_type: resourceType });
-                console.log(`🚀 ~ deleteDirectory ~ ${resourceType} resourcesDeleted:`, resourcesDeleted);
-            } else {
-                console.log(`🚀 ~ deleteDirectory ~ No ${resourceType} resources to delete`);
+        if (result.success) {
+            res.status(200).send('Directory and its contents deleted successfully');
+        } else {
+            console.error("🚀 ~ deleteDirectory ~ error:", result.error);
+            if (result.error.http_code === 404) {
+                return res.status(404).send('Folder not found');
             }
+            res.status(500).send('Error deleting directory and its contents');
         }
-
-        // Step 2: Now delete the folder itself
-        const folderDeleted = await cloudinary.api.delete_folder(directoryPath);
-        console.log("🚀 ~ deleteDirectory ~ folderDeleted:", folderDeleted);
-
-        res.status(200).send('Directory and its contents deleted successfully');
     } catch (error) {
         if (error.http_code === 404) {
             console.log("🚀 ~ Folder not found:", directoryPath);
