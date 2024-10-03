@@ -136,7 +136,10 @@ const getFiles = async (req, res) => {
             {
                 displayName: resource.display_name,
                 public_id: resource.public_id,
-                url: resource.url
+                url: resource.url,
+                modified: resource.created_at,
+                size: resource.bytes,
+                name: resource.asset_id
             }
         ));
         res.json({ files });

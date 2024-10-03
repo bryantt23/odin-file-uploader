@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { downloadFile, getFileDetails } from '../services/directoryService';
 
 function FileItem({ directory, file }) {
     const [showDetails, setShowDetails] = useState(false)
-    const [fileDetails, setFileDetails] = useState({})
+    const [fileDetails, setFileDetails] = useState(null)
+
+    useEffect(() => {
+        if (file.public_id) {
+            setFileDetails({ name: file.name, size: file.size, modified: file.modified })
+        }
+    }, [])
 
     const handleDownload = async () => {
         // using cloudinary
@@ -23,12 +29,13 @@ function FileItem({ directory, file }) {
     }
 
     const toggleDetails = async () => {
-        if (!showDetails) {
+        if (!showDetails && fileDetails === null) {
             const details = await getFileDetails(directory, file)
             setFileDetails(details)
         }
         setShowDetails(!showDetails)
     }
+
     return (<li>
         {file.displayName}
         <button onClick={() => handleDownload(file)}>Download</button>
