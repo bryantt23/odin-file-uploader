@@ -18,19 +18,19 @@ function FileItem({ directory, file }) {
             const link = document.createElement('a');
             link.href = downloadUrl;
             link.target = '_blank'; // This will open the link in a new tab
-            link.setAttribute('download', file.displayName);
+            link.setAttribute('download', file);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
         else {
-            downloadFile(directory, file)
+            downloadFile(directory, file.displayName)
         }
     }
 
     const toggleDetails = async () => {
         if (!showDetails && fileDetails === null) {
-            const details = await getFileDetails(directory, file)
+            const details = await getFileDetails(directory, file.displayName)
             setFileDetails(details)
         }
         setShowDetails(!showDetails)

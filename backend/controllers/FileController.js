@@ -3,18 +3,24 @@ const path = require('path');
 const { getFiles: getFilesFs } = require('../fsFunctions');
 
 const getFiles = async (req, res) => {
-    const dirPath = req.query.path; // Get directory path from query
-    const normalizedPath = path.normalize(dirPath).replace(/^(\.\.[\/\\])+/, ''); // Restrict path to prevent directory traversal
-    const fullPath = path.join(__dirname, '..', 'uploads', normalizedPath); // Construct full path to the files directory
+    const dirPath = req.query.path;  // Get directory path from query
+    const normalizedPath = path.normalize(dirPath).replace(/^(\.\.[\/\\])+/, '');  // Restrict path to prevent directory traversal
+    const fullPath = path.join(__dirname, '..', 'uploads', normalizedPath);  // Construct full path to the files directory
 
     try {
-        const files = await getFilesFs(fullPath); // Get files using the helper function from fsFunctions
-        res.status(200).json({ files }); // Send files list as JSON
+        const filenames = await fs.readdir(fullPath);
+        const files = await Promise.all(filenames.map(async filename => {
+            return {
+                displayName: filename,  // or however you want the name displayed
+            };
+        }));
+        res.status(200).json({ files });
     } catch (error) {
         console.error('Failed to fetch files:', error);
         res.status(500).send('Error fetching files');
     }
 };
+
 
 const uploadFile = (req, res) => {
     if (req.file) {
