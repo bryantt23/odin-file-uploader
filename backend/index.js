@@ -16,8 +16,21 @@ const cloudinaryDirectoryFileController = require('./controllers/CloudinaryContr
 const fileUpload = require('express-fileupload');
 
 // Determine which controller to use based on an environment variable or other logic
-const isUsingCloudinary = true;
-const activeFileController = isUsingCloudinary ? cloudinaryDirectoryFileController : fsFileController;
+const isUsingCloudinary = false;
+
+// Determine which directory controller to use
+const getDirectoryController = () => {
+    return isUsingCloudinary ? cloudinaryDirectoryFileController : multerDirectoryController;
+};
+
+// Determine which file controller to use
+const getFileController = () => {
+    return isUsingCloudinary ? cloudinaryDirectoryFileController : fsFileController;
+};
+
+// Use the appropriate controller based on the environment setting
+const directoryController = getDirectoryController();
+const fileController = getFileController();
 
 // Conditional middleware based on environment variable
 const uploadMiddleware = (req, res, next) => {
@@ -82,16 +95,16 @@ app.post('/logout', logout);
 app.get('/status', getStatus);
 
 // Directory Management Routes
-app.get('/directory', activeFileController.getDirectories);
-app.post('/directory', activeFileController.makeDirectory);
-app.put('/directory', activeFileController.renameDirectory);
-app.delete('/directory/:path', activeFileController.deleteDirectory);
+app.get('/directory', directoryController.getDirectories);
+app.post('/directory', directoryController.makeDirectory);
+app.put('/directory', directoryController.renameDirectory);
+app.delete('/directory/:path', directoryController.deleteDirectory);
 
 // File Management Routes
-app.get('/files', activeFileController.getFiles);
-app.post('/upload/:path', uploadMiddleware, activeFileController.uploadFile);
-app.get('/files/details/:directory/:filename', activeFileController.getFileDetails);
-app.get(`/download/:directory/:filename`, activeFileController.downloadFile);
+app.get('/files', fileController.getFiles);
+app.post('/upload/:path', uploadMiddleware, fileController.uploadFile);
+app.get('/files/details/:directory/:filename', fileController.getFileDetails);
+app.get(`/download/:directory/:filename`, fileController.downloadFile);
 
 // ----- Error Handling Middleware -----
 app.use((err, req, res, next) => {
