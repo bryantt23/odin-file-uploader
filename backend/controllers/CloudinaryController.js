@@ -132,9 +132,9 @@ const getFiles = async (req, res) => {
             return res.status(404).send({ message: `No resources found in folder: ${folderPath}` });
         }
 
-        const files = filtered.map(resource => ({
-            display_name: resource.display_name
-        }));
+        const files = filtered.map(resource => (
+            resource.display_name
+        ));
 
         res.json({ files });
     } catch (error) {
