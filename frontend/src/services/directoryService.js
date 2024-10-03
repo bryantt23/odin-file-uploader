@@ -73,18 +73,19 @@ export const renameDirectory = async (prev, updated) => {
     }
 }
 
-export const downloadFile = async (directory, filename) => {
+export const downloadFile = async (file) => {
     try {
         const response = await
             axios({
-                url: `${baseUrl}/download/${directory}/${filename}`,
+                url: `${baseUrl}/download/`,
                 method: 'GET',
+                params: file,
                 responseType: 'blob'
             })
         const fileURL = window.URL.createObjectURL(new Blob([response.data]))
         const fileLink = document.createElement('a')
         fileLink.href = fileURL
-        fileLink.setAttribute('download', filename)
+        fileLink.setAttribute('download', file.displayName)
         document.body.appendChild(fileLink)
         fileLink.click()
         fileLink.parentNode.removeChild(fileLink)

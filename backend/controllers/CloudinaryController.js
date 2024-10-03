@@ -135,7 +135,8 @@ const getFiles = async (req, res) => {
         const files = filtered.map(resource => (
             {
                 displayName: resource.display_name,
-                public_id: resource.public_id
+                public_id: resource.public_id,
+                url: resource.url
             }
         ));
         res.json({ files });
@@ -173,11 +174,10 @@ async function getAllResources() {
     }
 }
 
-
 module.exports = {
     getDirectories,
     makeDirectory,
     renameDirectory,
     deleteDirectory,
-    getFiles
+    getFiles,
 };

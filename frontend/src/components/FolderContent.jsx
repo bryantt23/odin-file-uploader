@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { getFiles, downloadFile } from '../services/directoryService'
+import { getFiles } from '../services/directoryService'
 import FileUpload from './FileUpload'
 import FileItem from './FileItem'
 
@@ -16,10 +16,6 @@ function FolderContent() {
     useEffect(() => {
         fetchData()
     }, [])
-
-    const handleDownload = async (filename) => {
-        downloadFile(directory, filename)
-    }
 
     return (
         <div>
