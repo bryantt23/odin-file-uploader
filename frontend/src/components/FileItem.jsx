@@ -17,7 +17,7 @@ function FileItem({ directory, file }) {
         setShowDetails(!showDetails)
     }
     return (<li>
-        {file}
+        {file.displayName}
         <button onClick={() => handleDownload(file)}>Download</button>
         <button onClick={toggleDetails}>{showDetails ? 'Hide Details' : 'Show Details'}</button>{showDetails && (
             <ul>

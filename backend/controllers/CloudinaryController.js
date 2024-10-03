@@ -133,9 +133,11 @@ const getFiles = async (req, res) => {
         }
 
         const files = filtered.map(resource => (
-            resource.display_name
+            {
+                displayName: resource.display_name,
+                public_id: resource.public_id
+            }
         ));
-
         res.json({ files });
     } catch (error) {
         console.error('Error fetching files:', error);

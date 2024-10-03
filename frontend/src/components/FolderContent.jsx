@@ -26,7 +26,7 @@ function FolderContent() {
             <h2>Content of {directory}</h2>
             <FileUpload directory={directory} fetchData={fetchData} />
             <ul>
-                {files.length === 0 ? <p>No files in this folder</p> : files.map(file => <FileItem key={file} directory={directory} file={file} />)}
+                {files.length === 0 ? <p>No files in this folder</p> : files.map(file => <FileItem key={file.displayName} directory={directory} file={file} />)}
             </ul>
         </div>
     )
