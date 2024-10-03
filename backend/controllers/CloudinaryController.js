@@ -101,20 +101,6 @@ const deleteDirectory = async (req, res) => {
     }
 };
 
-const renameDirectory = async (req, res) => {
-    try {
-        const { prev, updated } = req.body
-        if (!prev || !updated) {
-            return res.status(400).send('Both previous and updated paths are required')
-        }
-        await renameDirectoryFs(prev, updated)
-        res.status(200).send('Directory renamed successfully')
-    } catch (error) {
-        console.error(error)
-        res.status(500).send('Error renaming directory')
-    }
-}
-
 /**
  * Fetch and return all files from a specified Cloudinary folder.
  */
@@ -209,6 +195,60 @@ const uploadFile = async (req, res) => {
     );
 
     readableStream.pipe(cloudinaryStream);
+};
+
+const renameDirectory = async (req, res) => {
+    const { prev, updated } = req.body;
+
+    if (!prev || !updated) {
+        return res.status(400).send('Both previous and updated paths are required');
+    }
+
+    try {
+        // Step 1: Fetch all resources from the previous directory
+        const allResources = await getAllResources();
+        const filtered = allResources.filter(resource => resource.asset_folder === prev);
+
+        // Step 2: Create new directory by copying files
+        const copyResults = await Promise.all(filtered.map(resource =>
+            cloudinary.uploader.upload(resource.url, {
+                public_id: resource.public_id.replace(prev, updated),
+                folder: updated,
+                resource_type: 'auto'
+            })
+        ));
+
+        // Step 3: Check if all files are copied successfully
+        if (copyResults.some(result => !result)) {
+            throw new Error('Failed to copy some files');
+        }
+
+        // Step 4: Delete old files
+        let deletionResults = await Promise.all(filtered.map(resource =>
+            cloudinary.uploader.destroy(resource.public_id, { resource_type: 'image' })
+        ));
+        deletionResults = await Promise.all(filtered.map(resource =>
+            cloudinary.uploader.destroy(resource.public_id, { resource_type: 'raw' })
+        ));
+
+        // Step 5: Check if all files are deleted successfully
+        if (deletionResults.some(result => !result.result === 'ok')) {
+            throw new Error('Failed to delete some files');
+        }
+
+        // Step 6: Delete the old folder if empty
+        try {
+            await cloudinary.api.delete_folder(prev);
+            console.log("Folder deleted successfully");
+        } catch (error) {
+            throw new Error('Failed to delete the folder: ' + error.message);
+        }
+
+        res.status(200).send('Directory renamed successfully');
+    } catch (error) {
+        console.error('Error renaming directory:', error);
+        res.status(500).send('Error renaming directory');
+    }
 };
 
 module.exports = {
