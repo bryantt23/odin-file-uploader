@@ -251,11 +251,23 @@ const renameDirectory = async (req, res) => {
     }
 };
 
+const downloadFile = (req, res) => {
+    console.log("Download attempted on Cloudinary setup, which is not implemented.");
+    res.status(501).send("Downloading files directly is not implemented in the Cloudinary setup.");
+};
+
+const getFileDetails = (req, res) => {
+    console.log("Get file details attempted on Cloudinary setup, which is not implemented.");
+    res.status(501).send("Getting file details directly is not implemented in the Cloudinary setup.");
+};
+
 module.exports = {
     getDirectories,
     makeDirectory,
     renameDirectory,
     deleteDirectory,
     getFiles,
-    uploadFile
+    uploadFile,
+    downloadFile,
+    getFileDetails
 };

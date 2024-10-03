@@ -82,16 +82,16 @@ app.post('/logout', logout);
 app.get('/status', getStatus);
 
 // Directory Management Routes
-app.get('/directory', cloudinaryDirectoryFileController.getDirectories);
-app.post('/directory', cloudinaryDirectoryFileController.makeDirectory);
-app.put('/directory', cloudinaryDirectoryFileController.renameDirectory);
-app.delete('/directory/:path', cloudinaryDirectoryFileController.deleteDirectory);
+app.get('/directory', activeFileController.getDirectories);
+app.post('/directory', activeFileController.makeDirectory);
+app.put('/directory', activeFileController.renameDirectory);
+app.delete('/directory/:path', activeFileController.deleteDirectory);
 
 // File Management Routes
-app.get('/files', cloudinaryDirectoryFileController.getFiles);
+app.get('/files', activeFileController.getFiles);
 app.post('/upload/:path', uploadMiddleware, activeFileController.uploadFile);
-app.get('/files/details/:directory/:filename', fsFileController.getFileDetails);
-app.get(`/download/:directory/:filename`, fsFileController.downloadFile);
+app.get('/files/details/:directory/:filename', activeFileController.getFileDetails);
+app.get(`/download/:directory/:filename`, activeFileController.downloadFile);
 
 // ----- Error Handling Middleware -----
 app.use((err, req, res, next) => {
