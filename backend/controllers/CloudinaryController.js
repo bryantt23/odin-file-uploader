@@ -1,6 +1,7 @@
 require('dotenv').config()
 const cloudinary = require('cloudinary').v2
-const path = require('path')
+const path = require('path');
+const { Readable } = require('stream');
 
 cloudinary.config({
     cloud_name: process.env.CLOUD_NAME,
@@ -177,10 +178,44 @@ async function getAllResources() {
     }
 }
 
+const uploadFile = async (req, res) => {
+    if (!req.files || !req.files.file) {
+        return res.status(400).send('No file uploaded');
+    }
+
+    const file = req.files.file;
+    const directoryPath = req.params.path;  // Assuming the directory path is sent as a URL parameter
+    const readableStream = new Readable();
+    readableStream._read = () => { };
+    readableStream.push(file.data);
+    readableStream.push(null); // EOF
+
+    // Define Cloudinary upload options
+    const uploadOptions = {
+        resource_type: 'auto',
+        folder: directoryPath, // Specify the folder path for Cloudinary
+    };
+
+    // Stream the uploaded file to Cloudinary
+    const cloudinaryStream = cloudinary.uploader.upload_stream(
+        uploadOptions,
+        (error, result) => {
+            if (error) {
+                console.error('Cloudinary error:', error);
+                return res.status(500).send({ message: 'Cloudinary upload failed', error });
+            }
+            res.send({ message: 'File uploaded successfully to Cloudinary', url: result.secure_url });
+        }
+    );
+
+    readableStream.pipe(cloudinaryStream);
+};
+
 module.exports = {
     getDirectories,
     makeDirectory,
     renameDirectory,
     deleteDirectory,
     getFiles,
+    uploadFile
 };

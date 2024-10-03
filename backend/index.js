@@ -13,6 +13,21 @@ const { login, getStatus, logout } = require('./controllers/AuthenticationContro
 const multerDirectoryController = require('./controllers/DirectoryController');
 const upload = require('./config/multerConfig')
 const cloudinaryDirectoryFileController = require('./controllers/CloudinaryController')
+const fileUpload = require('express-fileupload');
+
+// Determine which controller to use based on an environment variable or other logic
+const isUsingCloudinary = true;
+const activeFileController = isUsingCloudinary ? cloudinaryDirectoryFileController : fsFileController;
+
+// Conditional middleware based on environment variable
+const uploadMiddleware = (req, res, next) => {
+    if (isUsingCloudinary) {
+        next()
+    }
+    else {
+        upload.single('file')(req, res, next)
+    }
+}
 
 const PORT = 3000;
 
@@ -36,6 +51,12 @@ app.use(expressSession({
         dbRecordIdFunction: undefined
     }
     )
+}));
+
+app.use(fileUpload({
+    createParentPath: true, // Automatically creates the directory path for uploaded files
+    safeFileNames: true, // Ensures file names are safe to use with your filesystem
+    preserveExtension: true // Preserves the extension of the file being uploaded
 }));
 
 // ----- Helper Function to Ensure Base Upload Directory Exists -----
@@ -68,7 +89,7 @@ app.delete('/directory/:path', cloudinaryDirectoryFileController.deleteDirectory
 
 // File Management Routes
 app.get('/files', cloudinaryDirectoryFileController.getFiles);
-app.post('/upload/:path', upload.single('file'), fsFileController.uploadFile);
+app.post('/upload/:path', uploadMiddleware, activeFileController.uploadFile);
 app.get('/files/details/:directory/:filename', fsFileController.getFileDetails);
 app.get(`/download/:directory/:filename`, fsFileController.downloadFile);
 
