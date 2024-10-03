@@ -42,9 +42,11 @@ const renameDirectory = async (prev, updated) => {
 
 const deleteDirectory = async (path) => {
     try {
-        await fs.rmdir(`./uploads/${path}`);
+        // Deletes the directory and any files/subdirectories within it
+        await fs.rm(`./uploads/${path}`, { recursive: true, force: true });
+        console.log(`Directory ${path} deleted successfully.`);
     } catch (error) {
-        console.error(error);
+        console.error(`Error deleting directory ${path}:`, error);
     }
 }
 
