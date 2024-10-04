@@ -27,17 +27,19 @@ export const getFiles = async (path = '') => {
 }
 
 export const uploadFile = async (formData, path, config) => {
-    console.log("🚀 ~ uploadFile ~ formData, config:", formData, config)
+    const encodedPath = encodeURIComponent(path);
+    console.log("🚀 ~ uploadFile ~ path:", path);
+    console.log("🚀 ~ uploadFile ~ encodedPath:", encodedPath);
     formData.forEach((value, key) => {
         console.log(key, value);
     });
 
     try {
-        const response = await axios.post(`${baseUrl}/upload/${path}`, formData, config)
-        return response.data
+        const response = await axios.post(`${baseUrl}/upload/${encodedPath}`, formData, config);
+        return response.data;
     } catch (error) {
-        console.error('Failed to fetch directories:', error);
-        throw error
+        console.error('Upload failed:', error);
+        throw error;
     }
 }
 

@@ -13,7 +13,7 @@ const { login, getStatus, logout } = require('./controllers/AuthenticationContro
 const multerDirectoryController = require('./controllers/DirectoryController');
 const upload = require('./config/multerConfig')
 const cloudinaryDirectoryFileController = require('./controllers/CloudinaryController')
-const fileUpload = require('express-fileupload');
+// const fileUpload = require('express-fileupload');
 
 // Determine which controller to use based on an environment variable or other logic
 const isUsingCloudinary = false;
@@ -32,17 +32,34 @@ const getFileController = () => {
 const directoryController = getDirectoryController();
 const fileController = getFileController();
 
+const PORT = 3000;
 // Conditional middleware based on environment variable
 const uploadMiddleware = (req, res, next) => {
     if (isUsingCloudinary) {
-        next()
-    }
-    else {
-        upload.single('file')(req, res, next)
+        console.log("Using Cloudinary, skipping multer.");
+        next();
+    } else {
+        console.log("Using multer for file upload.", req.file);
+
+        upload.single('file')(req, res, function (err) {
+            if (err) {
+                console.error("Error during file upload:", err);
+                return res.status(500).send({ message: "Error during file upload", error: err.message });
+            }
+            console.log("File uploaded successfully.", req.file);
+            next();
+        });
     }
 }
 
-const PORT = 3000;
+const fileCompatibilityMiddleware = (req, res, next) => {
+    if (req.files && req.files.file) {
+        // express-fileupload stores files in req.files
+        // Multer expects the file in req.file
+        req.file = req.files.file;
+    }
+    next();
+};
 
 // ----- Middleware and Session Configuration -----
 const app = express();
@@ -65,12 +82,12 @@ app.use(expressSession({
     }
     )
 }));
-
-app.use(fileUpload({
-    createParentPath: true, // Automatically creates the directory path for uploaded files
-    safeFileNames: true, // Ensures file names are safe to use with your filesystem
-    preserveExtension: true // Preserves the extension of the file being uploaded
-}));
+app.use(fileCompatibilityMiddleware);
+// app.use(fileUpload({
+//     createParentPath: true, // Automatically creates the directory path for uploaded files
+//     safeFileNames: true, // Ensures file names are safe to use with your filesystem
+//     preserveExtension: true // Preserves the extension of the file being uploaded
+// }));
 
 // ----- Helper Function to Ensure Base Upload Directory Exists -----
 async function ensureUploadsDirectory() {
@@ -88,6 +105,8 @@ async function ensureUploadsDirectory() {
 
 ensureUploadsDirectory().catch(console.error);
 
+
+
 // ----- API Routes -----
 // Authentication Routes
 app.post('/login', login);
@@ -102,9 +121,9 @@ app.delete('/directory/:path', directoryController.deleteDirectory);
 
 // File Management Routes
 app.get('/files', fileController.getFiles);
-app.post('/upload/:path', uploadMiddleware, fileController.uploadFile);
 app.get('/files/details/:directory/:filename', fileController.getFileDetails);
 app.get(`/download/:directory/:filename`, fileController.downloadFile);
+app.post('/upload/:path', uploadMiddleware, fileController.uploadFile);
 
 // ----- Error Handling Middleware -----
 app.use((err, req, res, next) => {
